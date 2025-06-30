@@ -1,29 +1,108 @@
+/** Both */
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
 }
-body {
+
+/** Both */
+section.section-preview {
     display: grid;
     place-items: center;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    overflow: hidden;
 }
-textarea {
+
+/** Both */
+section.section-controls {
+    width: calc(100% - 1em);
+    box-sizing: border-box;
+    overflow: hidden;
+    display: grid;
+    gap: 1em 0;
+    align-items: flex-start;
+    justify-content: stretch;
+    align-content: flex-start;
+    padding-bottom: 1em;
+}
+
+/** Decoder */
+section.section-controls > label {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 6em 1fr;
+}
+
+/** Decoder */
+section.section-controls > label > input {
     width: 100%;
     box-sizing: border-box;
-    height: 100%;
 }
+
+/** Decoder */
+section.section-controls > textarea {
+    height: 15em;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+section.section-controls > cite {
+    width: 100%;
+    text-align: center;
+    font-size: 0.75em;
+    padding: 0;
+    margin: 0;
+}
+
+/** Both */
 canvas {
     max-width: 100%;
     max-height: 100%;
 }
 
+
+
+nav {
+    border-bottom: 1px solid currentColor;
+    width: 100%;
+}
+nav ul {
+    list-style: none;
+    display: grid;
+    grid-auto-flow: column;
+    place-items: center;
+    padding: 0;
+    margin: .5em 0;
+}
+nav ul li a[data-current] {
+    pointer-events: none;
+    text-decoration: none;
+    color: inherit;
+    font-weight: bold;
+}
+
+
+
+
 @media screen and (orientation: landscape){
+    /** Encoder */
     body {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 25em 1fr;
     }
+
 }
 @media screen and (orientation: portrait){
-    body {
-        grid-template-rows: 1fr 1fr;
+    /** Encoder */
+    body.hexa-encoder {
+        /* grid-template-rows: 1fr 1fr; */
+    }
+
+    /** Decoder */
+    body.hexa-decoder {
+    }
+
+    section.section-preview {
     }
 }

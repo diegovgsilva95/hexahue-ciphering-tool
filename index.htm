@@ -4,13 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark">
-    <title>Hexahue</title>
+    <title>Hexahue Cipher</title>
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <canvas></canvas>
-    <textarea autocomplete="off" placeholder="Payload (double-click the canvas to save image as PNG)"></textarea>
+<body class="hexa-encoder">
+    <section class="section-controls">
+        <nav>
+            <ul>
+                <li><a data-current href="index.htm">Encoder</a></li>
+                <li><a href="decoder.htm">Decoder</a></li>
+            </ul>
+        </nav>
+        <label>Payload:</label>
+        <textarea autocomplete="off" placeholder="" maxlength="500"></textarea>
+        <cite><b>Note:</b> double-click the canvas to save image as PNG</cite>
+    </section>
+
+    <section class="section-preview">
+        <canvas></canvas>
+    </section>
     <script type="module" src="js/index.mjs"></script>
 </body>
 </html>

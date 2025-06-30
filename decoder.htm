@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Hexahue Cipher</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="hexa-decoder">
+    <section class="section-controls">
+        <nav>
+            <ul>
+                <li><a href="index.htm">Encoder</a></li>
+                <li><a data-current href="decoder.htm">Decoder</a></li>
+            </ul>
+        </nav>
+
+        <label>
+            <span>Grid mode:</span>
+            <select id="decoder-grid">
+                <option value="01">Gray</option>
+                <option value="02">White</option>
+                <option value="00">Black</option>
+                <option value="20">Red</option>
+                <option value="22">Green</option>
+                <option value="24">Blue</option>
+                <option value="66">Hidden</option>
+            </select>
+        </label>
+
+        <label>
+            <span title="How much opaque are the blocks" onclick="alert('How much opaque are the blocks')">ℹ️ Overlay:</span>
+            <select id="decoder-blocks">
+                <option value="10">100%</option>
+                <option value="9">90%</option>
+                <option value="8">80%</option>
+                <option value="7">70%</option>
+                <option value="6">60%</option>
+                <option value="5">50%</option>
+                <option value="4">40%</option>
+                <option value="3">30%</option>
+                <option value="2">20%</option>
+                <option value="1">10%</option>
+            </select>
+
+        </label>
+        <label>
+            <span>Image:</span>
+            <input autocomplete="off" type="file" id="decoder-img" />
+        </label>
+        <label>
+            <span>Offset X:</span>
+            <input autocomplete="off" type="number" id="decoder-ox" min="0" max="100" step="1" value="0" />
+        </label>
+        <label>
+            <span>Offset Y:</span>
+            <input autocomplete="off" type="number" id="decoder-oy" min="0" max="100" step="1" value="0" />
+        </label>
+        <label>
+            <span>Size:</span>
+            <input autocomplete="off" type="number" id="decoder-s" min="1" max="100" step="1" value="20" />
+        </label>
+        <label>Output:</label>
+        <textarea autocomplete="off" readonly id="decoder-payload"></textarea>
+        <cite><b>Tip:</b> You can click and drag within the canvas to precisely define the starting point and size of the decoding grid. This allows you to adjust the offset and block size visually for better accuracy.</cite>
+
+    </section>
+    <section class="section-preview">
+        <canvas class="preview-main"></canvas>
+    </section>
+    <script type="module" src="js/decoder.mjs"></script>
+</body>
+</html>
