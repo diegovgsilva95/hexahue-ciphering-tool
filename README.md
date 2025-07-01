@@ -28,6 +28,8 @@ Can you discover which message lies behind the figure in _sombrero_? (And I'm no
 - ~~Some kind of decoding mechanism~~ Done!
 - More non-letter characters (there's mathematical room for some alphabetic expansion)
 - Margins, different color palettes (e.g. pastel tones) and textures...
+- Additional ways to compute each block color (e.g. midpoint, weighted sampling, scattered sampling, etc)
+- Improve the computation of block color (currently, `getAvgColor` is heavy for large pictures)
 
 ## How to use
 1. Clone the repo

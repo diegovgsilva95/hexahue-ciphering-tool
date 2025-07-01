@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Test RFP</title>
+</head>
+<body>
+    <h1>Canvas Data Extraction test</h1>
+    <hr>
+    <p><b>Test:</b> <span>In progress...</span></p>
+    <script type="module">
+    import {RFPTester} from "./js/test-rfp.mjs"
+
+    let [testCount, testResult, testHarmedPixelCount, testTotalPixelCount] = await RFPTester.getInstance().batchTest(5)
+    const elmInfo = document.querySelector("p span")
+    let output = [
+        testResult ? "Browser is tampering with Canvas Data" : "Canvas Data is intact",
+        " (determined after ",
+        String(testCount),
+        " test" + (testCount>1?"s":""),
+        testHarmedPixelCount == 0 ? 
+            `; NONE of the ${testTotalPixelCount} pixels were harmed during this experiment \u{1FAE0})`
+            : 
+            (testHarmedPixelCount == testTotalPixelCount ? 
+            `; all ${testTotalPixelCount} pixels were harmed during this experiment \u{1F622})`:
+            `; ${testHarmedPixelCount} pixels, out of ${testTotalPixelCount}, were harmed during this experiment \u{1FAE4})`)
+    ]
+    elmInfo.innerText = output.join("")
+
+    elmInfo.style.color = testResult ? "#FF0000" : "#00FF00"
+    </script>
+</body>
+</html>

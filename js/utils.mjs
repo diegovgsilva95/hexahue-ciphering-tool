@@ -1,15 +1,14 @@
 export function loadImage(url, timeoutMs = 1000){
 
     let img = new Image()
-    return new Promise((res, rej) => {
+    return new Promise(async (res, rej) => {
         let timeoutFn = function(){
             img.src = ""
             img = null
             rej(new Error("Timeout"))
         },
         timeout = setTimeout(timeoutFn, timeoutMs)
-
-        img.src = url
+        // await sleep(500)
         img.onload = function(){
             clearTimeout(timeout)
             res(img)
@@ -17,8 +16,9 @@ export function loadImage(url, timeoutMs = 1000){
         img.onerror = function(){
             clearTimeout(timeout)
             rej(new Error(`Load Error`))
-
+            
         }
+        img.src = url
 
     })
 }

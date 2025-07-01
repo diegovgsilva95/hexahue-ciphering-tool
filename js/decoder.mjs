@@ -1,11 +1,10 @@
 import { HexahueCommons } from "./common.mjs"
-import {GRAY, loadImage, log, perfLog, RGB, RGBToHSL} from "./utils.mjs"
+import {loadImage, log, perfLog, RGB, RGBToHSL, sleep} from "./utils.mjs"
 
 class HexahueDecoder extends HexahueCommons {
     MINSIZE = 10
     constructor(){
         super()
-        perfLog("Creating Hexahue decoder")
         this.precomputeHSLPalette()
         
         this.loaded = false
@@ -15,7 +14,7 @@ class HexahueDecoder extends HexahueCommons {
 
         this.initCanvasUI()
         this.initControls()
-        perfLog("Done creating Hexahue decoder")
+        this.initInfo()
     }
 
     precomputeHSLPalette(){
@@ -23,8 +22,8 @@ class HexahueDecoder extends HexahueCommons {
     }
 
     /** Computation of palette and other graphical computations */
-    getAvgColor(ox,oy,w,h){
-        const {W, H, imgData, imgDataLong} = this
+    getAvgColor(ox,oy,w,h){ // this can be, by far, the heaviest function for CPU affairs
+        const {W, H, imgDataLong} = this
 
         let AC = [0,0,0]
         let QW = w
@@ -42,20 +41,20 @@ class HexahueDecoder extends HexahueCommons {
         oy = Math.max(0, oy|0)
         ox = Math.max(0, ox|0)
 
-        for(let y = oy; y < RH; y++)
+        for(let y = oy; y < RH; y++){
+            let oi = y * W
             for(let x = ox; x < RW; x++){
-                let i = y * W + x
-                // let ii = 4*i
+                let i = oi + x
                 let FP = imgDataLong[i]
                 let r = (FP>> 0) & 255
                 let g = (FP>> 8) & 255
                 let b = (FP>>16) & 255
 
-                // let [r,g,b] = imgData.data.slice(ii, ii+3)
                 AC[0] += r*DC
                 AC[1] += g*DC
                 AC[2] += b*DC
             }
+        }
         return [AC[0]|0,AC[1]|0,AC[2]|0]
     }
     getClosestColor(thisColor){
@@ -107,16 +106,16 @@ class HexahueDecoder extends HexahueCommons {
         return [+minimalIdx, this.PALETTE[minimalIdx]]
     }
     extractGrid(ox,oy,s){
-        const {mainCtx, W, H, imgCtx, imgData} = this
+        this.registerTiming("Extract grid", false)
 
+        const {mainCtx, W, H} = this
+        let matrix = []
         let CQY = Math.ceil((H-oy)/s)
         let CQX = Math.ceil((W-ox)/s)
 
-        let matrix = []
-        // perfLog(`extractGrid: going to read ${CQX} x ${CQY} blocks`)
         mainCtx.globalAlpha=this.blockMode
+
         for(let iy = 0; iy<CQY; iy++){
-            // if(iy % 5 == 0) perfLog(`extractGrid: ${iy} lines`)
             let OQY = iy*s+oy
             let row = []
             for(let ix = 0; ix<CQX; ix++){
@@ -129,12 +128,15 @@ class HexahueDecoder extends HexahueCommons {
             }
             matrix.push(row)
         }
+
         mainCtx.globalAlpha=1
+
+        this.registerTiming("Extract grid", true)
+
         return matrix
     }
     mapPoss(s){ // e.g. "325461" -> "214350" -> "K"
         let poss = []
-        let pposs = []
         let dimmed = 0
         // hardcoding gray  0 7 and 14, so plz CHANGE THIS if the palette changes
         // also 1(dark red)->8(light red) as possibility
@@ -232,14 +234,14 @@ class HexahueDecoder extends HexahueCommons {
         let scaleW = this.mainCanvas.width/this.mainCanvas.clientWidth
         let scaleH = this.mainCanvas.height/this.mainCanvas.clientHeight
 
-        if(ev.targetTouches)
-            if(ev.targetTouches.length == 1)
-                return [
-                    ev.targetTouches.item(0).clientX*scaleW, 
-                    ev.targetTouches.item(0).clientY*scaleH
-                ]
-            else
-                return null
+        if(ev.targetTouches) //TODO: Try to make this thing compatible with touching, because touches don't have offsetX/offsetY
+            // if(ev.targetTouches.length == 1)
+            //     return [
+            //         ev.targetTouches.item(0).clientX*scaleW, 
+            //         ev.targetTouches.item(0).clientY*scaleH
+            //     ]
+            // else
+                return null //sorry mobile users
 
         return [ev.offsetX*scaleW, ev.offsetY*scaleH]
     }
@@ -304,14 +306,14 @@ class HexahueDecoder extends HexahueCommons {
         let item = this.ctrlImg.files.item(0)
         let mime = item.type||"image/jpg"
         let buf = await item.arrayBuffer()
-        log(item, buf)
         let blob = new Blob([buf], {type: mime})
         let bloburi = URL.createObjectURL(blob)
         await this.init(bloburi)
+        await sleep(500)
         URL.revokeObjectURL(bloburi)
     }
     async init(url, ox, oy, s){
-        perfLog("Init decoder")
+        this.registerTiming("Init", false)
         this.img = null
         this.loaded = false
         this.changed = false
@@ -319,10 +321,10 @@ class HexahueDecoder extends HexahueCommons {
             this.img = await loadImage(url)
         }
         catch(e){
+            this.registerTiming("Init", true)
             alert("Couldn't load image. Leaving.")
             return
         }
-        perfLog("Image loaded, continue init")
         let W = this.W = this.img.width
         let H = this.H = this.img.height
 
@@ -344,7 +346,7 @@ class HexahueDecoder extends HexahueCommons {
         this.mainCanvas.width = W
         this.mainCanvas.height = H
         this.loaded = true
-        perfLog("Done init")
+        this.registerTiming("Init", true)
         this.changed=true
         this.checkReparse()
     }
@@ -352,9 +354,11 @@ class HexahueDecoder extends HexahueCommons {
 
     /** Drawing artifacts */
     drawGrid(ox,oy,s,T=1){
+        this.registerTiming("Draw grid", false)
         const {mainCtx, W, H} = this
 
         if(s == null || isNaN(s)){
+            this.registerTiming("Draw grid", true)
             alert("Invalid dimensions!")
             throw new Error("Invalid dimensions")
             return
@@ -367,15 +371,16 @@ class HexahueDecoder extends HexahueCommons {
         }
         else {
             gridMode = this.gridMode
-            if(+gridMode[0] > 2) 
+            if(+gridMode[0] > 2){ 
+                this.registerTiming("Draw grid", true)
                 return
+            }
 
             if(gridMode[0] == 0) 
                 gridMode = gridMode[1]*7
             else 
                 gridMode = +gridMode[1]+8
         }
-        // log(gridMode, this.PALETTE[gridMode])
 
         mainCtx.save()
         mainCtx.lineWidth = T
@@ -391,6 +396,8 @@ class HexahueDecoder extends HexahueCommons {
         }
         mainCtx.stroke()
         mainCtx.restore()
+
+        this.registerTiming("Draw grid",true)
     }
     drawImg(){
         const {W, H} = this
@@ -411,23 +418,15 @@ class HexahueDecoder extends HexahueCommons {
     }
     reparse(){
         const {ctrlOX, ctrlOY, ctrlS, ctrlOut} = this
-        // perfLog("reparse: Draw image")
         this.drawImg()
-        // perfLog("reparse: Drawn")
         
         let S = Math.max(1,+ctrlS.value)
         let OX = +ctrlOX.value
         let OY = +ctrlOY.value
-
-        // perfLog("reparse: Extract grid")
         let matrix = this.extractGrid(OX, OY, S)
-        // perfLog("reparse: Extracted")
-        // perfLog("reparse: Draw grid overlay")
         this.drawGrid(OX, OY, S)
-        // perfLog("reparse: Drawn grid overlay")
-        // log({matrix})
-        // log("---------")
-        // perfLog("reparse: Mapping 2x3 grid")
+
+        this.registerTiming("Reparse", false)
         let seq = []
         for(let y = 0; y < matrix.length; y+=3){
             let rowseq = []
@@ -442,12 +441,8 @@ class HexahueDecoder extends HexahueCommons {
             }
             seq.push(rowseq)
         }
-        // perfLog("reparse: Mapped 2x3 grid")
-        // log({seq})
-
-        // perfLog("reparse: Mapping chars")
         ctrlOut.value = this.decodeHexahue(seq)
-        // perfLog("reparse: Done reparse")
+        this.registerTiming("Reparse", true)
 
     }
     decodeHexahue(seq){
@@ -465,8 +460,69 @@ class HexahueDecoder extends HexahueCommons {
         return out
     }
 
+    /** Debug information and performance */
+    initInfo(){
+        this.ctrlInfo = document.querySelector("#decoder-info")
+        this.infoDict = {}
+        this.currentTimings = {}
+        this.lastTimings = {}
+        setInterval(this.showInfo.bind(this), 300)
+        this.showInfo()
+    }
+    showInfo(){
+        let output = []
+        let imgStat;
+        if(!this.loaded)
+            imgStat = "Not loaded"
+        else if(typeof this.img === "undefined" || !(this.img instanceof HTMLImageElement))
+            imgStat = "Loaded without image (Bug?)"
+        else 
+            imgStat = `Loaded (${[this.img.width, this.img.height].join(" x ")})`
+
+        output.push(`Image: ${imgStat}`)
+        output.push("")
+        output.push("Performance from last 1s (min-max (avg, tot, amt)):")
+        output.push(...this.printTimings())
+        // output.push(``)
+        this.ctrlInfo.innerText = output.join("\n")
+        this.cleanTimings()
+    }
+    registerInfo(name, key){
+        this.infoDict[name] = key
+    }
+    registerTiming(algo, done = false){
+        let dn = Date.now()
+        if(!done)
+            this.currentTimings[algo] = dn
+        else {
+            let elapsed = dn - (this.currentTimings[algo]||0)
+            this.lastTimings[algo] = this.lastTimings[algo]||[]
+            this.lastTimings[algo].push({when: this.currentTimings[algo], elapsed})
+        }
+    }
+    printTimings(){
+        let out = []
+        for(let algo in this.lastTimings){
+            let allTimes = this.lastTimings[algo]
+            let n = allTimes.length
+            if(n == 0) continue
+            allTimes = allTimes.map(t => t.elapsed)
+            let maxTime = Math.max(...allTimes)
+            let minTime = Math.min(...allTimes)
+            let avgTime = allTimes.reduce((p,v) => p+v/n, 0)
+            let totTime = allTimes.reduce((p,v) => p+v)
+            out.push(`${algo}: ${minTime.toFixed(0)}ms-${maxTime.toFixed(0)}ms (avg ${avgTime.toFixed(0)}ms, tot ${totTime.toFixed(0)}ms, ${n} iteractions)`)
+        }
+        return out
+    }
+    cleanTimings(){
+        let dn = Date.now() - 1000
+        for(let algo in this.lastTimings)
+            this.lastTimings[algo] = this.lastTimings[algo].filter(t => t.when >= dn)
+    }
+
 }
 
-
-await HexahueDecoder.getInstance().init("sombrero.jpg", 979,65,32)
 window.hexa = HexahueDecoder.getInstance()
+await HexahueCommons.checkRFP()
+await HexahueDecoder.getInstance().init("sombrero.jpg", 979,65,32) //sombrero.jpg

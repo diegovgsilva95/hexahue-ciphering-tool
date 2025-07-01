@@ -284,6 +284,6 @@ class HexahueEncoder extends HexahueCommons {
         a.remove()
     }
 }
-
+await HexahueCommons.checkRFP()
 HexahueEncoder.getInstance().init("alphabet")
 HexahueEncoder.getInstance().prepareToEncodeUserInput()

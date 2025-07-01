@@ -51,11 +51,8 @@
             <input autocomplete="off" type="file" id="decoder-img" />
         </label>
         <label>
-            <span>Offset X:</span>
+            <span>Offset (X,Y):</span>
             <input autocomplete="off" type="number" id="decoder-ox" min="0" max="100" step="1" value="0" />
-        </label>
-        <label>
-            <span>Offset Y:</span>
             <input autocomplete="off" type="number" id="decoder-oy" min="0" max="100" step="1" value="0" />
         </label>
         <label>
@@ -64,8 +61,12 @@
         </label>
         <label>Output:</label>
         <textarea autocomplete="off" readonly id="decoder-payload"></textarea>
-        <cite><b>Tip:</b> You can click and drag within the canvas to precisely define the starting point and size of the decoding grid. This allows you to adjust the offset and block size visually for better accuracy.</cite>
 
+        <cite><b>Tip:</b> You can click and drag within the canvas to precisely define the starting point and size of the decoding grid. This allows you to adjust the offset and block size visually for better accuracy.</cite>
+        <details open>
+            <summary>Information (Debug)</summary>
+            <pre id="decoder-info"></pre>
+        </details>
     </section>
     <section class="section-preview">
         <canvas class="preview-main"></canvas>

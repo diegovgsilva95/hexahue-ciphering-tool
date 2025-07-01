@@ -1,3 +1,4 @@
+import { RFPTester } from "./test-rfp.mjs"
 import { Singleton } from "./utils.mjs"
 
 export class HexahueCommons extends Singleton {
@@ -68,5 +69,17 @@ export class HexahueCommons extends Singleton {
         for(let eventName of eventNames)
             for(let element of elements)
                 element.addEventListener(eventName, this.signalChange.bind(this))
+    }
+
+
+    static async checkRFP(){
+        let [_, browserIsF___ingWithCanvas] = await RFPTester.getInstance().batchTest(5)
+
+        if(browserIsF___ingWithCanvas){
+            let warnUserElm = document.createElement("div")
+            warnUserElm.classList.add("toast-warn")
+            warnUserElm.innerText = `Your browser (probably Librewolf) is tampering with canvases. This project as a whole won't work as intended. There's nothing I can do, sorry.\n(I could suggest you to disable ResistFingerPrint or switch browsers but, well, you're the user, not me, I'm just a damn webpage)`
+            document.body.appendChild(warnUserElm)
+        }
     }
 }
